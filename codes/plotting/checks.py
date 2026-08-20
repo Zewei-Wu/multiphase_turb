@@ -271,7 +271,7 @@ def tracer_avg_evol_load(trial = '240711_0.4_16000', nbins_temp = 'auto', ncores
     for fname in tqdm(file_list_core):
         print(fname)
         t, press, rho, r = get_datamds(fname=fname, keys=['Time', 'press', 'rho', 'r0'], verbose=False)
-        scalar = np.array(r) * np.array(rho)# * (np.array(rho)) ** 2  # scalar is scaled by density
+        scalar = np.array(r) * np.array(rho)# * (np.array(rho)) ** 2  # scalar is scaled by density already, r = S/rho
         temperature = calc_T(press, rho)  # calculate temperature from the two
         
         # cells with less and more scalar
@@ -290,7 +290,7 @@ def tracer_avg_evol_load(trial = '240711_0.4_16000', nbins_temp = 'auto', ncores
 
     imgdata = []
     for i, temperature in tqdm(enumerate(temp_athdf)):  # for each snapshot
-        # avg_scalars, bin_temp_edges, _ = bs(temperature, scalar_athdf[i], statistic=np.sum, bins=bins_temp)  # mean
+        # avg_scalars, bin_temp_edges, _ = bs(temperature, scalar_athdf[i], statistic=np.sum, bins=bins_temp)  # sum
         avg_scalars, bin_temp_edges = np.histogram(temperature, weights=scalar_athdf[i], bins=bins_temp)  # mean
         # add values outside
         avg_scalars[0] += np.sum(scalar_athdf[i][temperature < bins_temp[0]])

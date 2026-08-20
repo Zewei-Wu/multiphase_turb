@@ -27,7 +27,7 @@ Shown in a single panel
 """
 
 def cooling_8e2(figpath = '/ptmp/mpa/wuze/multiphase_turb/figures/cooling_8e2.pdf', trial = '', snapshot = 22,
-                shade = True, fs = 12):
+                shade = 2, fs = 12):
     # use gridspec
     fig = plt.figure(figsize=(4, 3), dpi=200)
     gs = gridspec.GridSpec(2, 1, height_ratios=[1, 4])  # ratio
@@ -77,11 +77,18 @@ def cooling_8e2(figpath = '/ptmp/mpa/wuze/multiphase_turb/figures/cooling_8e2.pd
     T_mix = np.sqrt(T_cold * T_hot)
 
     def plot_tvlines(ax, shade=False):
-        if shade:
+        if shade == 1:
             y1, y2 = ax.get_ylim()
-            ax.fill_between(x=[T_cold, 2 * T_cold], y1=y1, y2=y2, linewidth=0, color="slateblue", alpha=0.2, zorder=-1)  # cold
-            ax.fill_between(x=[2 * T_cold, T_mix], y1=y1, y2=y2, linewidth=0, color="green", alpha=0.2, zorder=-1)  # warm
-            ax.fill_between(x=[T_mix, rp['T_ceil']], y1=y1, y2=y2, linewidth=0, color="orangered", alpha=0.2, zorder=-1)  # hot
+            ax.fill_between(x=[T_cold, 2 * T_cold], y1=y1, y2=y2, linewidth=0, color="blue", alpha=0.2, zorder=-1)  # cold
+            ax.fill_between(x=[2 * T_cold, T_mix], y1=y1, y2=y2, linewidth=0, color="purple", alpha=0.2, zorder=-1)  # warm
+            ax.fill_between(x=[T_mix, rp['T_ceil']], y1=y1, y2=y2, linewidth=0, color="black", alpha=0.1, zorder=-1)  # hot
+        elif shade == 2:
+            ax.axvspan(T_cold, 2 * T_cold, ymin=0, ymax=1,
+                       facecolor='none', edgecolor='blue', hatch='xxxx', linewidth=0.0, alpha=0.3, zorder=-1)
+            ax.axvspan(2 * T_cold, T_mix, ymin=0, ymax=1,
+                       facecolor='none', edgecolor='purple', hatch='////', linewidth=0.0, alpha=0.3, zorder=-1)
+            ax.axvspan(T_mix, rp['T_ceil'], ymin=0, ymax=1,
+                       facecolor='none', edgecolor='black', hatch='|||', linewidth=0.0, alpha=0.1, zorder=-1)
         else:
             # only plot the definitions for cold, warm/mix, and hot
             ax.axvline(x=T_cold, lw=1, linestyle="--", color="slateblue", alpha=0.2)
@@ -145,7 +152,7 @@ def cooling_8e2(figpath = '/ptmp/mpa/wuze/multiphase_turb/figures/cooling_8e2.pd
     ax_hist.set_ylim(3e4, np.max(counts))
     
     # ax_hist.text(ax1.get_xlim()[0] / 10, ax_hist.get_ylim()[0], 'frequency', ha='left', va='bottom', color='grey', rotation=90, fontsize=fs)
-    ax_hist.text(1e7, ax_hist.get_ylim()[0], 'frequency', ha='center', va='bottom', color='grey', rotation=0, fontsize=fs)
+    ax_hist.text(1e7, ax_hist.get_ylim()[0] * (ax_hist.get_ylim()[1] / ax_hist.get_ylim()[0])**(1/2), r'$N_{\rm cells}$', ha='center', va='center', color='grey', rotation=0, fontsize=fs)
     # ax_hist.axis('off')
     ax_hist.tick_params(axis='x',
                         which='both',
@@ -402,23 +409,29 @@ def params_8e2(figpath = '/ptmp/mpa/wuze/multiphase_turb/figures/params_8e2.pdf'
         Make the shading or the line separating different regimes
         """
         if shade:
+            lw = 0
             # both destroyed
             ax.fill_between(ana_x, y1=np.power(10., 0.5),
-                            y2=ana_lines[0][1], ls='-.', lw=1, ec='None', color='red', alpha=0.2, zorder=-1)
+                            y2=ana_lines[0][1], ls='-', lw=lw, ec='None', color='red', alpha=0.2, zorder=-1)
             # warm survived
             ax.fill_between(ana_x, y1=ana_lines[0][1],
-                            y2=ana_lines[1][1], ls='-.', lw=1, ec='None', color='orange', alpha=0.2, zorder=-1)
+                            y2=ana_lines[1][1], ls='-', lw=lw, ec='None', color='orange', alpha=0.2, zorder=-1)
             # both survived
             ax.fill_between(ana_x, y1=ana_lines[1][1],
-                            y2=ana_lines[2][1], ls='-', lw=1, ec='None', color='green', alpha=0.2, zorder=-1)
+                            y2=ana_lines[2][1], ls='-', lw=lw, ec='None', color='green', alpha=0.2, zorder=-1)
             # cold survived
             ax.fill_between(ana_x, y1=ana_lines[2][1],
-                            y2=np.power(10., log_ylimu), ls='-', lw=1, ec='None', color='teal', alpha=0.2, zorder=-1)
-        
-        # plot the lines only
-        ax.plot(ana_lines[0][0], ana_lines[0][1], lw=1, ls='-.', color='orangered', alpha=0.5, label=r'$\frac {t_{\rm cc,hw}} {t_{\rm cool,peak}}$')
-        ax.plot(ana_lines[1][0], ana_lines[1][1], lw=1, ls='--', color='blue', alpha=0.5, label=r'$\frac {t_{\rm cc,wc}} {t_{\rm cool,peak}}$')
-        ax.plot(ana_lines[2][0], ana_lines[2][1], lw=1, ls='-.', color='brown', alpha=0.5, label=r'$\frac {t_{\rm cc,wc}} {t_{\rm grow,wc}}$')
+                            y2=np.power(10., log_ylimu), ls='-', lw=lw, ec='None', color='teal', alpha=0.2, zorder=-1)
+                            
+            # plot the lines only
+            ax.plot(ana_lines[0][0], ana_lines[0][1], lw=1, ls=':', color='gray', alpha=0.5, label=r'$\frac {t_{\rm cc,hw}} {t_{\rm cool,peak}}$')
+            ax.plot(ana_lines[1][0], ana_lines[1][1], lw=1, ls=':', color='gray', alpha=0.5, label=r'$\frac {t_{\rm cc,wc}} {t_{\rm cool,peak}}$')
+            ax.plot(ana_lines[2][0], ana_lines[2][1], lw=1, ls=':', color='gray', alpha=0.5, label=r'$\frac {t_{\rm cc,wc}} {t_{\rm grow,wc}}$')
+        else:
+            # plot the lines only
+            ax.plot(ana_lines[0][0], ana_lines[0][1], lw=1, ls='-.', color='orangered', alpha=0.5, label=r'$\frac {t_{\rm cc,hw}} {t_{\rm cool,peak}}$')
+            ax.plot(ana_lines[1][0], ana_lines[1][1], lw=1, ls='--', color='blue', alpha=0.5, label=r'$\frac {t_{\rm cc,wc}} {t_{\rm cool,peak}}$')
+            ax.plot(ana_lines[2][0], ana_lines[2][1], lw=1, ls='-.', color='brown', alpha=0.5, label=r'$\frac {t_{\rm cc,wc}} {t_{\rm grow,wc}}$')
         
         # region labels
         # ax.text(0.9, ana_lines[0][1][-1]/10, s=r'\textbf{\xout{c} \xout{w}}', ha='right', va='center', rotation=10, fontsize=7)  # the old fancy labels
@@ -441,15 +454,21 @@ def params_8e2(figpath = '/ptmp/mpa/wuze/multiphase_turb/figures/params_8e2.pdf'
     if legend_on_plot:
         where_x = 0.25
         rot = 10; sep = 1.2
+        # # top and bottom of lines
         # ax.text(where_x, find_ana_ind(0, where_x) * sep, s=r'${t_{\rm cc,hw}}$', ha='left', va='bottom', rotation=rot, fontsize=tfs)
         # ax.text(where_x, find_ana_ind(1, where_x) * sep, s=r'${t_{\rm cc,wc}}$', ha='left', va='bottom', rotation=rot, fontsize=tfs)
         # ax.text(where_x, find_ana_ind(2, where_x) * sep, s=r'${t_{\rm cc,wc}}$', ha='left', va='bottom', rotation=rot, fontsize=tfs)
         # ax.text(where_x, find_ana_ind(0, where_x), s=r'$={t_{\rm cool,peak}}$', ha='left', va='top', rotation=rot, fontsize=tfs)
         # ax.text(where_x, find_ana_ind(1, where_x), s=r'$={t_{\rm cool,peak}}$', ha='left', va='top', rotation=rot, fontsize=tfs)
         # ax.text(where_x, find_ana_ind(2, where_x), s=r'$={t_{\rm grow,wc}}$', ha='left', va='top', rotation=rot, fontsize=tfs)
-        ax.text(where_x, find_ana_ind(0, where_x) * sep / 3, s=r'$\frac {t_{\rm cc,hw}} {t_{\rm cool,peak}}$', ha='left', va='center', rotation=rot-1, fontsize=tfs+2)  # bottom to top
-        ax.text(where_x, find_ana_ind(1, where_x) * sep * 3, s=r'$\frac {t_{\rm cc,wc}} {t_{\rm cool,peak}}$', ha='left', va='center', rotation=rot, fontsize=tfs+2)
-        ax.text(where_x, find_ana_ind(2, where_x) * sep * 3, s=r'$\frac {t_{\rm cc,wc}} {t_{\rm grow,wc}}$', ha='left', va='center', rotation=rot+2, fontsize=tfs+2)
+        # unshifted on the line
+        ax.text(where_x, find_ana_ind(0, where_x) * sep, s=r'$\frac {t_{\rm cc,hw}} {t_{\rm cool,peak}}$', ha='left', va='center', rotation=rot-1, fontsize=tfs+2)  # bottom to top
+        ax.text(where_x, find_ana_ind(1, where_x) * sep, s=r'$\frac {t_{\rm cc,wc}} {t_{\rm cool,peak}}$', ha='left', va='center', rotation=rot, fontsize=tfs+2)
+        ax.text(where_x, find_ana_ind(2, where_x) * sep, s=r'$\frac {t_{\rm cc,wc}} {t_{\rm grow,wc}}$', ha='left', va='center', rotation=rot+2, fontsize=tfs+2)
+        # # shifted
+        # ax.text(where_x, find_ana_ind(0, where_x) * sep / 3, s=r'$\frac {t_{\rm cc,hw}} {t_{\rm cool,peak}}$', ha='left', va='center', rotation=rot-1, fontsize=tfs+2)  # bottom to top
+        # ax.text(where_x, find_ana_ind(1, where_x) * sep * 3, s=r'$\frac {t_{\rm cc,wc}} {t_{\rm cool,peak}}$', ha='left', va='center', rotation=rot, fontsize=tfs+2)
+        # ax.text(where_x, find_ana_ind(2, where_x) * sep * 3, s=r'$\frac {t_{\rm cc,wc}} {t_{\rm grow,wc}}$', ha='left', va='center', rotation=rot+2, fontsize=tfs+2)
 
         ax.set_xlim(0.23, 0.92)
     else:  # standalone legend
@@ -649,11 +668,11 @@ def temp_rcl_load(trials = ['240715_0.8_16', '240711_0.4_1600', '240715_0.8_1600
 
 def temp_rcl_plot(data, tccs,
                   figpath = '/ptmp/mpa/wuze/multiphase_turb/figures/temp_rcl.pdf',
-                  vmin = 800, vmax = 1e5,
+                  vmin = 800, vmax = 1e5, plot_title = False,
                   cmap = 'viridis', lfs = 7, tfs = 10):
     num_runs, temp_data, rcls = data
     # Create the figure and axes
-    fig, axes = plt.subplots(1, num_runs, figsize=(2 * num_runs, 2.5), dpi=300)
+    fig, axes = plt.subplots(1, num_runs, figsize=(2 * num_runs, 2.5 if plot_title else 2.2), dpi=300)
     
     # normalizations
     norm = mpl.colors.LogNorm(vmin=vmin, vmax=vmax)
@@ -700,7 +719,8 @@ def temp_rcl_plot(data, tccs,
     cax.text(2000, -1, 'warm', color='purple', ha='center', va='center', alpha=0.5, rotation=0, fontsize=lfs)
 
     # add the main title
-    fig.suptitle(r'$T_{\rm cloud} = 8\times 10^2\ {\rm K},\ L_{\rm box}/R_{\rm cl} = 50$', va='top', fontsize=tfs, x=0.53, y=0.96)
+    if plot_title:
+        fig.suptitle(r'$T_{\rm cloud} = 8\times 10^2\ {\rm K},\ L_{\rm box}/R_{\rm cl} = 50$', va='top', fontsize=tfs, x=0.53, y=0.96)
     plt.subplots_adjust(hspace=0.05, wspace=0.05)
     
     # save and show the plot
@@ -835,7 +855,7 @@ def mass_evol(figpath = '/ptmp/mpa/wuze/multiphase_turb/figures/mass_evol.pdf',
 
 def mass_evol_both(figpath = '/ptmp/mpa/wuze/multiphase_turb/figures/mass_evol_both.pdf',
                     csvpath = '/freya/ptmp/mpa/wuze/multiphase_turb/saves/cloud_8e3.csv',
-                    mach = 0.4, plot_growth = 0,
+                    mach = 0.4, plot_growth = 0, label_style = 2,
                     cm = None, alpha = 0.5, verbose = False, plot_legend = False,
                     lfs = 12, tfs = 14):
     """
@@ -970,7 +990,10 @@ def mass_evol_both(figpath = '/ptmp/mpa/wuze/multiphase_turb/figures/mass_evol_b
     cbar.set_ticks([0, 2, 4, 6, 8])
     cbar.set_ticklabels([0, 2, 4, 6, 8])
     cbar.ax.set_ylabel(r'$\log_{10} \frac{R_{\rm cl}}{l_{\rm shatter}}$', rotation=90, labelpad=10, fontsize=lfs)
-    ax1.set_title(fr'${{\mathcal{{M}} = {mach}}}$, resolution: ${rp['grid_dim']}^3$', fontsize=tfs)
+    if label_style == 1:
+        ax1.set_title(fr'${{\mathcal{{M}} = {mach}}}$, resolution: ${rp['grid_dim']}^3$', fontsize=tfs)
+    elif label_style == 2:
+        ax2.text(1.5, 3e-3, fr'${{\mathcal{{M}} = {mach}}}$', ha='center', va='center', fontsize=lfs)
 
     plt.subplots_adjust(hspace=0)
     plt.savefig(figpath, format="pdf", bbox_inches="tight")
@@ -1065,7 +1088,7 @@ def tracer_temp_evol_plot_onepanel(figpath = '/ptmp/mpa/wuze/multiphase_turb/fig
     # colorbars
     cbar_ax = fig.add_axes([0.925, 0.15, 0.02, 0.7])  # [left, bottom, width, height]
     cbar = plt.colorbar(img, cax=cbar_ax)
-    cbar.set_label('normalized scalar sum', fontsize=lfs)
+    cbar.set_label('density-weighted average scalar', fontsize=lfs)  # density-weighted average scalar
 
     # ax1.set_ylabel(r'$\log_{10}(T [\rm{K}])$')
     ax1.set_ylabel(r'$T$ [K]', fontsize=lfs)
@@ -1103,7 +1126,8 @@ def tracer_temp_evol_plot_onepanel(figpath = '/ptmp/mpa/wuze/multiphase_turb/fig
 def tracer_temp_evol_plot(figpath = '/ptmp/mpa/wuze/multiphase_turb/figures/tracer_temp_evol.pdf',
                           trials = ['240716_0.8_4000', '240709_0.6_1600000', '240709_0.6_160000000'],
                           tcc_lim = 0, vmins = [5e-4, 3e-7, 1e-7],
-                          cmap = 'viridis', lfs = 12, tfs = 14, second_axis_snapshots = False, shading = 'auto'):
+                          cmap = 'viridis', lfs = 12, tfs = 14,
+                          temp_hatches = False, second_axis_snapshots = False, shading = 'auto'):
     from matplotlib.ticker import FixedLocator
     from matplotlib.colors import LogNorm, Normalize
     import json
@@ -1159,7 +1183,8 @@ def tracer_temp_evol_plot(figpath = '/ptmp/mpa/wuze/multiphase_turb/figures/trac
         cbar_ax.xaxis.set_ticks_position('top'); cbar_ax.tick_params(axis='x', which='major', pad=1)
 
         if ax == ax2:
-            cbar.set_label('normalized scalar sum', fontsize=lfs, labelpad=-30)
+            # cbar.set_label('density-weighted average scalar', fontsize=lfs, labelpad=-30)  # density-weighted average scalar
+            cbar.set_label(r'Tracer mass fraction $\sum_{i \in T} \rho_i\,r_i$', fontsize=lfs, labelpad=-30)  # formula for scalar
 
         """axis ticks"""
         # ax.set_ylabel(r'$\log_{10}(T [\rm{K}])$')
@@ -1177,6 +1202,21 @@ def tracer_temp_evol_plot(figpath = '/ptmp/mpa/wuze/multiphase_turb/figures/trac
         # add minor ticks without labels between 0 and 1
         minor_locator = FixedLocator(np.arange(0, 2, 0.2))
         ax.xaxis.set_minor_locator(minor_locator)
+
+        """Temperature Hatches"""
+        if temp_hatches:
+            T_cold = rp['T_cloud']  # set cold temperature to that of cloud
+            T_hot = rp['T_hot']
+            T_mix = np.sqrt(T_cold * T_hot)
+            T_ceil = 8e5 #rp['T_ceil']
+            ax.axhspan(T_cold, 2 * T_cold, xmin=0, xmax=1,
+                       facecolor='none', edgecolor='blue', hatch='xxxx', linewidth=0.0, alpha=0.3, zorder=-1)
+            ax.axhspan(2 * T_cold, T_mix, xmin=0, xmax=1,
+                       facecolor='none', edgecolor='purple', hatch='////', linewidth=0.0, alpha=0.3, zorder=-1)
+            ax.axhspan(T_mix, T_ceil, xmin=0, xmax=1,
+                       facecolor='none', edgecolor='black', hatch='|||', linewidth=0.0, alpha=0.1, zorder=-1)
+            ax.set_ylim([800,T_ceil])
+            
 
         """Make a secondary axis on snapshots"""
         if second_axis_snapshots:
@@ -1204,7 +1244,7 @@ Figure 8
 Cold & warm gas t_grow plot
 """
 def tgrow_exp_both(figpath = '/ptmp/mpa/wuze/multiphase_turb/figures/tgrow_exp_both.pdf',
-                    cm = 'viridis', pred = True,
+                    cm = 'viridis', pred = True, xlim = [1, 9],
                     lfs = 12, tfs = 10):
     """
     Plots the actual t_grow for both cold and warm gas in two panels
@@ -1230,16 +1270,21 @@ def tgrow_exp_both(figpath = '/ptmp/mpa/wuze/multiphase_turb/figures/tgrow_exp_b
     ax1 = fig.add_subplot(gs[0])  # cold
     ax2 = fig.add_subplot(gs[1], sharex=ax1)  # warm
     
-    for ax, run_list in zip([ax1, ax2], [cg_run_list, wg_run_list]):
+    xlim = [xlim[0]-0.3, xlim[1]+0.3]
+    for ax, run_list, ylim in zip([ax1, ax2], [cg_run_list, wg_run_list], [[3e-1, 1e2], [1e-1, 2e1]]):
         # early and late points
         ax.scatter(rcl_lshat_list, run_list[:, 0],
                     marker='^', s=20, linewidths=1, fc='none', ec=color, alpha=0.5, label='early')
         ax.scatter(rcl_lshat_list, run_list[:, 1],
-                    marker='o', s=30, linewidths=1, fc=color, ec='k', alpha=0.8, label='late')
+                    marker='o', s=30, linewidths=1, fc=color, ec='k', alpha=0.65, label='late')
         
         # axis properties
         ax.set_xscale('log')
         ax.set_yscale('log')
+        
+        ax.set_xlim(*np.power(10., xlim))
+        # separation bands
+        transition_colors_1d(fig, ax, xlim, ylim)
 
     # predicted growths
     if pred:
@@ -1269,12 +1314,14 @@ def tgrow_exp_both(figpath = '/ptmp/mpa/wuze/multiphase_turb/figures/tgrow_exp_b
 
     # cold
     ax1.set_ylim(3e-1, 1e2)
+    ax1.axhline(1, lw=0.5, ls='--', color='k', alpha=0.8, zorder=-1)  # the tcc line
     ax1.set_ylabel(r'$\frac{t_{\rm grow, exp}}{t_{\rm cc}}$ (cold)', fontsize=lfs)
     ax1.legend(loc='upper right', fontsize=tfs)
+    
     # warm
     ax2.set_ylim(1e-1, 2e1)
+    ax2.axhline(1, lw=0.5, ls='--', color='k', alpha=0.8, zorder=-1)  # the tcc line
     ax2.set_ylabel(r'$\frac{t_{\rm grow, exp}}{t_{\rm cc}}$ (warm)', fontsize=lfs)
-
     ax2.set_xlabel(r'$\frac{R_{\rm cl}}{l_{\rm shatter}}$', fontsize=lfs)
 
     # add colorbar
@@ -1292,6 +1339,37 @@ def tgrow_exp_both(figpath = '/ptmp/mpa/wuze/multiphase_turb/figures/tgrow_exp_b
     plt.savefig(figpath, format="pdf", bbox_inches="tight")
     plt.show()
 
+
+def transition_colors_1d(fig, ax, xlim, ylim):
+    from matplotlib.colors import LinearSegmentedColormap
+    # Example x range (log scale)
+    x = np.logspace(*xlim, 500)
+    y = ylim  # dummy y values for fill
+
+    # Custom colormap from red -> orange -> green -> teal
+    colors = ['red', 'orange', 'green', 'teal']
+    positions = [0, 0.33, 0.66, 1.0]  # relative positions
+    cmap = LinearSegmentedColormap.from_list('custom_cmap', list(zip(positions, colors)))
+    def get_color_value(xval):
+        if xval < 4e2:
+            return 0  # red
+        elif xval < 8e2:
+            return (xval - 4e2) / (8e2 - 4e2) * 0.33  # red -> orange
+        elif xval < 5e3:
+            return 0.33
+        elif xval < 7e3:
+            return 0.33 + (xval - 5e3) / (7e3 - 5e3) * 0.33  # orange -> green
+        elif xval < 3e6:
+            return 0.66
+        elif xval < 6e7:
+            return 0.66 + (xval - 3e6) / (6e7 - 3e6) * 0.34  # green -> teal
+        else:
+            return 1.0  # teal
+
+    # Compute color values
+    color_vals = np.array([get_color_value(val) for val in x])
+    for i in range(len(x) - 1):
+        ax.fill_between([x[i], x[i+1]], *y, color=cmap(color_vals[i]), alpha=0.2, ec='None', zorder=-1)
 
 """
 Figure 9
@@ -1340,10 +1418,12 @@ def tgrow_four_quadrants(figpath = '/ptmp/mpa/wuze/multiphase_turb/figures/tgrow
 
     # shade fill
     x = np.sort(np.concatenate([-np.logspace(-10, np.log10(-xlim[0]), 400), np.logspace(-10, np.log10(xlim[1]), 400)]))
-    ax.fill_between(x, yraise, ylim[0], where=(x < 0), ls='-.', lw=1, ec='None', color='red', alpha=0.2, zorder=-1)
-    ax.fill_between(x, yraise, ylim[1], where=(x < 0), ls='-.', lw=1, ec='None', color='orange', alpha=0.2, zorder=-1)
-    ax.fill_between(x, yraise, ylim[1], where=(x > 0), ls='-.', lw=1, ec='None', color='green', alpha=0.2, zorder=-1)
-    ax.fill_between(x, yraise, ylim[0], where=(x > 0), ls='-.', lw=1, ec='None', color='teal', alpha=0.2, zorder=-1)
+    # ax.fill_between(x, yraise, ylim[0], where=(x < 0), ls='-.', lw=1, ec='None', color='red', alpha=0.2, zorder=-1)
+    # ax.fill_between(x, yraise, ylim[1], where=(x < 0), ls='-.', lw=1, ec='None', color='orange', alpha=0.2, zorder=-1)
+    # ax.fill_between(x, yraise, ylim[1], where=(x > 0), ls='-.', lw=1, ec='None', color='green', alpha=0.2, zorder=-1)
+    # ax.fill_between(x, yraise, ylim[0], where=(x > 0), ls='-.', lw=1, ec='None', color='teal', alpha=0.2, zorder=-1)
+    transition_colors_2d(fig, ax, xlim, ylim, ytran=yraise, dx=0.2, dy=0.2)
+    
 
     # text
     ax.text(xlim[0]/2, (yraise+ylim[0])/2, s=r'\texttt{cDwD}', ha='center', va='center', fontsize=tfs)  # the new labels consistent with text
@@ -1366,6 +1446,43 @@ def tgrow_four_quadrants(figpath = '/ptmp/mpa/wuze/multiphase_turb/figures/tgrow
     plt.show()
 
 
+def transition_colors_2d(fig, ax, xlim, ylim,
+                         dx = 0.2, dy = 0.2, xtran = 0, ytran = 1.2):
+    from matplotlib.colors import to_rgb
+
+    # Define colors for the 4 quadrants
+    colors = {
+        'lower_left': to_rgb('red'),     # cold destroyed
+        'upper_left': to_rgb('orange'),  # cold survives
+        'upper_right': to_rgb('green'),   # warm survives
+        'lower_right': to_rgb('teal'),  # warm destroyed
+    }
+
+    # Grid
+    x = np.linspace(*xlim, 500)
+    y = np.linspace(*ylim, 500)
+    X, Y = np.meshgrid(x, y)  # x and y mesh
+
+    # Compute blending factors
+    tx = 0.5 * (1 + np.tanh((X - xtran) / dx))
+    ty = 0.5 * (1 + np.tanh((Y - ytran) / dy))
+
+    # Initialize RGB
+    RGB = np.zeros((*X.shape, 3))
+
+    # Blend each channel smoothly
+    for k in range(3):
+        RGB[..., k] = (
+            (1 - tx) * (1 - ty) * colors['lower_left'][k] +  # bottom left
+            (1 - tx) * ty       * colors['upper_left'][k] +  # top left
+            tx       * ty       * colors['upper_right'][k] +  # top right
+            tx       * (1 - ty) * colors['lower_right'][k]    # bottom right
+        )
+
+    # Plot
+    ax.imshow(RGB, origin='lower', extent=[x.min(), x.max(), y.min(), y.max()], aspect='auto', alpha=0.2)
+
+
 """
 Figure 10
 ----------------------------------------
@@ -1383,7 +1500,7 @@ def params_tcc_tchar_fit_hori(figpath = '/ptmp/mpa/wuze/multiphase_turb/figures/
     # load the trials
     from matplotlib.gridspec import GridSpec
     # initialize the plot
-    fig = plt.figure(figsize=(4, 14))
+    fig = plt.figure(figsize=(14, 4))
     gs = GridSpec(1, 31, figure=fig)
     ax1 = fig.add_subplot(gs[0, 0:9])
     ax2 = fig.add_subplot(gs[0, 11:20])
@@ -1483,7 +1600,7 @@ def params_tcc_tchar_fit(figpath = '/ptmp/mpa/wuze/multiphase_turb/figures/param
     # load the trials
     from matplotlib.gridspec import GridSpec
     # initialize the plot
-    fig = plt.figure(figsize=(4.2, 12), dpi=200)
+    fig = plt.figure(figsize=(4.1, 12), dpi=200)
     gs = GridSpec(3, 1, height_ratios=[1, 1, 1])  # ratio
     ax1 = fig.add_subplot(gs[0])
     ax2 = fig.add_subplot(gs[1])
@@ -1594,7 +1711,7 @@ Shown in 4 panels, each corresponding to the phase parameter space
 def app_mass_evol(figpath = '/ptmp/mpa/wuze/multiphase_turb/figures/app_mass_evol.pdf',
                   trials = [],
                   phase_colors = ['royalblue', 'darkorange', 'crimson'],
-                  lfs = 10, tfs = 12, second_axis_snapshots = False):
+                  hatch_style = 1, lfs = 10, tfs = 12, second_axis_snapshots = False):
     from matplotlib.gridspec import GridSpec
     from matplotlib.ticker import FixedLocator
     
@@ -1637,14 +1754,36 @@ def app_mass_evol(figpath = '/ptmp/mpa/wuze/multiphase_turb/figures/app_mass_evo
         # current axis
         ax = fig.add_subplot(gs[i])
         time_cropped_tcc = time[:hot_fill_ind] / rp['t_cc']
-        ax.stackplot(time_cropped_tcc,  # time in tcc
-                    cg_mass[:hot_fill_ind] / tot_mass,  # c, w, and h
-                    wg_mass[:hot_fill_ind] / tot_mass,
-                    hg_mass[:hot_fill_ind] / tot_mass,
-                    labels=['cold', 'warm', 'hot'],
-                    colors=phase_colors,
-                    alpha=0.5)
-        ax.set_ylim(0, 1)        
+        cold = cg_mass[:hot_fill_ind] / tot_mass
+        warm = wg_mass[:hot_fill_ind] / tot_mass
+        hot  = hg_mass[:hot_fill_ind] / tot_mass
+
+        if hatch_style == 0:
+            ax.stackplot(time_cropped_tcc,  # time in tcc
+                        cold, warm, hot,
+                        labels=['cold', 'warm', 'hot'],
+                        colors=phase_colors, hatch=['xxxx', '////', '|||'], linewidth=0.0, alpha=0.3, zorder=-1)
+        elif hatch_style == 1:  # plot hatches
+            stacked = ax.stackplot(
+                time_cropped_tcc,
+                cold, warm, hot,
+                labels=['cold', 'warm', 'hot'],
+                colors=['none'] * 3,  # transparent faces
+                linewidth=0.0, alpha=1.0, zorder=-1
+            )
+            hatches = ['xxxx', '////', '|||']
+            for poly, hatch, color, alpha in zip(stacked, hatches, phase_colors, [0.4, 0.4, 0.2]):
+                poly.set_facecolor('none')   # transparent background
+                poly.set_edgecolor(color)    # hatch color
+                poly.set_hatch(hatch)
+                poly.set_linewidth(0.0)
+                poly.set_alpha(alpha)
+
+            # dividing lines between regions
+            ax.plot(time_cropped_tcc, cold, color="black", linewidth=0.5, alpha=0.3, zorder=10)
+            ax.plot(time_cropped_tcc, cold + warm, color="black", linewidth=0.5, alpha=0.3, zorder=10)
+
+        ax.set_ylim(0, 1)
 
         # set major ticks for tcc
         time_min, time_max = time_cropped_tcc.min(), time_cropped_tcc.max()
